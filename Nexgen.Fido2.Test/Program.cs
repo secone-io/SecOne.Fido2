@@ -32,6 +32,14 @@ namespace Nexgen.Fido2.Test
 
         };
 
+        private static readonly byte[] Salt = {
+            0x78, 0x1c, 0x78, 0x60, 0xad, 0x88, 0xd2, 0x63,
+            0x32, 0x62, 0x2a, 0xf1, 0x74, 0x5d, 0xed, 0xb2,
+            0xe7, 0xa4, 0x2b, 0x44, 0x89, 0x29, 0x39, 0xc5,
+            0x56, 0x64, 0x01, 0x27, 0x0d, 0xbb, 0xc4, 0x49,
+
+        };
+
 
         static void Main(string[] args)
         {
@@ -55,7 +63,7 @@ namespace Nexgen.Fido2.Test
             if (string.IsNullOrEmpty(lastDevicePath))
             {
                 Console.WriteLine("No devices found. Check process is administrator, and that key is inserted correctly.");
-            }
+            } 
             else
             {
                 using (var dev = new FidoDevice())
@@ -125,7 +133,8 @@ namespace Nexgen.Fido2.Test
 
             //3. Make a credential on the device.
             //Pin may be null if not required
-            var result = MakeDeviceCredential(lastDevicePath, false, FidoCose.ES256, null, (hasPin) ? "1234" : null);
+            var useHmacExtension = true;
+            var result = MakeDeviceCredential(lastDevicePath, useHmacExtension, FidoCose.ES256, null, (hasPin) ? "1234" : null);
 
             Console.WriteLine($"Created credential id: {result.CredentialId}");
 
@@ -133,15 +142,15 @@ namespace Nexgen.Fido2.Test
             Console.WriteLine("Press any key to assert this credential");
             Console.ReadLine();
 
-            DoAssertion(lastDevicePath, "relyingparty", FidoCose.ES256, (hasPin) ? "1234" : null, result.CredentialId, result.PublicKey);
+            DoAssertion(lastDevicePath, useHmacExtension, "relyingparty", FidoCose.ES256, (hasPin) ? "1234" : null, result.CredentialId, result.PublicKey);
 
             Console.WriteLine("Press any key to close.");
             Console.ReadLine();
         }
 
-        private static void DoAssertion(string devicePath, string rp, FidoCose algorithmType, string pin, string credentialId, string publicKey)
+        private static void DoAssertion(string devicePath, bool useHmacExtension, string rp, FidoCose algorithmType, string pin, string credentialId, string publicKey)
         {
-            var ext = FidoExtensions.None;
+            var ext = useHmacExtension ? FidoExtensions.HmacSecret : FidoExtensions.None;
 
             using (var assert = new FidoAssertion())
             {
@@ -158,8 +167,11 @@ namespace Nexgen.Fido2.Test
                     assert.Rp = rp;
                     assert.SetExtensions(ext);
 
+                    if (useHmacExtension) assert.SetHmacSalt(Salt, 0);
+
                     //assert.SetOptions(UserPresenceRequired, UserVerificationRequired);
                     dev.GetAssert(assert, pin);
+
                     dev.Close();
                 }
 
@@ -207,7 +219,7 @@ namespace Nexgen.Fido2.Test
                 using (var dev = new FidoDevice())
                 {
                     dev.Open(devicePath);
-      
+
                     //if (excludedCredentials != null)
                     //{
                     //    foreach (var excludedCredential in excludedCredentials)
