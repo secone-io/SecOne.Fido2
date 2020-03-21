@@ -14,6 +14,12 @@ namespace Nexgen.Fido2.Test
         public string CredentialId;
     }
 
+    struct AssertionResult
+    {
+        public byte[] HmacSecret;
+        public bool Valid;
+    }
+
     class Program
     {
         //Client data hash. 
@@ -133,22 +139,40 @@ namespace Nexgen.Fido2.Test
 
             //3. Make a credential on the device.
             //Pin may be null if not required
-            var useHmacExtension = true;
-            var result = MakeDeviceCredential(lastDevicePath, useHmacExtension, FidoCose.ES256, null, (hasPin) ? "1234" : null);
 
-            Console.WriteLine($"Created credential id: {result.CredentialId}");
+            //https://groups.google.com/a/fidoalliance.org/forum/#!topic/fido-dev/L2K5fBm8Sh0
+            var useHmacExtension = true;
+
+            var credential = MakeDeviceCredential(lastDevicePath, useHmacExtension, FidoCose.ES256, null, (hasPin) ? "1234" : null);
+
+            Console.WriteLine($"Created credential id: {credential.CredentialId}");
 
             //4. Try a sample assertion
             Console.WriteLine("Press any key to assert this credential");
             Console.ReadLine();
 
-            DoAssertion(lastDevicePath, useHmacExtension, "relyingparty", FidoCose.ES256, (hasPin) ? "1234" : null, result.CredentialId, result.PublicKey);
+            var assertionResult = DoAssertion(lastDevicePath, useHmacExtension, "relyingparty", FidoCose.ES256, (hasPin) ? "1234" : null, credential.CredentialId, credential.PublicKey);
+
+            //5. Try a sample assertion
+            Console.WriteLine("Press to do another assertion");
+            Console.ReadLine();
+
+            var assertionResult2 = DoAssertion(lastDevicePath, useHmacExtension, "relyingparty", FidoCose.ES256, (hasPin) ? "1234" : null, credential.CredentialId, credential.PublicKey);
+
+            if (useHmacExtension)
+            {
+                Console.WriteLine($"Hmac Secrets Match: {assertionResult.HmacSecret.SequenceEqual(assertionResult2.HmacSecret)}");
+            }
+
 
             Console.WriteLine("Press any key to close.");
             Console.ReadLine();
         }
 
-        private static void DoAssertion(string devicePath, bool useHmacExtension, string rp, FidoCose algorithmType, string pin, string credentialId, string publicKey)
+        //View the c# versions of the c examples from Yubico here:
+        //https://github.com/borrrden/Fido2Net/blob/master/Examples/assert/Assert/Program.cs
+        //This will help explain how to eg retrieve hmac secrets
+        private static AssertionResult DoAssertion(string devicePath, bool useHmacExtension, string rp, FidoCose algorithmType, string pin, string credentialId, string publicKey)
         {
             var ext = useHmacExtension ? FidoExtensions.HmacSecret : FidoExtensions.None;
 
@@ -172,6 +196,9 @@ namespace Nexgen.Fido2.Test
                     //assert.SetOptions(UserPresenceRequired, UserVerificationRequired);
                     dev.GetAssert(assert, pin);
 
+                    //Find the generated secret (somehow)
+                 
+
                     dev.Close();
                 }
 
@@ -194,6 +221,13 @@ namespace Nexgen.Fido2.Test
                     verify.SetSignature(signature, 0);
                     verify.Verify(0, algorithmType, Convert.FromBase64String(publicKey));
                 }
+
+                AssertionResult result;
+
+                result.HmacSecret = (useHmacExtension) ? assert[0].HmacSecret.ToArray() : new Byte[] { };
+                result.Valid = true;
+
+                return result;
             }
         }
 
