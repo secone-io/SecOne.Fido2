@@ -190,8 +190,6 @@ namespace Nexgen.Fido2.Test
 
             Console.WriteLine("Touch the device if requested (to assert)...");
 
-            if (hasBiometric) hasUserPresence = false; //this didnt work
-
             var assertionResult = DoAssertion(lastDevicePath, useHmacExtension, "relyingparty", FidoCose.ES256, (hasPin) ? "1234" : null, credential.CredentialId, credential.PublicKey, hasUserPresence, hasBiometric);
 
             //5. Try a sample assertion
@@ -206,7 +204,6 @@ namespace Nexgen.Fido2.Test
             {
                 Console.WriteLine($"Hmac Secrets Match: {assertionResult.HmacSecret.SequenceEqual(assertionResult2.HmacSecret)}");
             }
-
 
             Console.WriteLine("Press any key to close.");
             Console.ReadLine();
@@ -236,7 +233,7 @@ namespace Nexgen.Fido2.Test
 
                     if (useHmacExtension) assert.SetHmacSalt(Salt, 0);
 
-                    //assert.SetOptions(UserPresenceRequired, UserVerificationRequired);
+                    assert.SetOptions(requireUp, requireUv);
                     dev.GetAssert(assert, pin);
 
                     //Find the generated secret (somehow)
