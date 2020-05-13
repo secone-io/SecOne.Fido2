@@ -8,6 +8,8 @@ namespace Nexgen.Fido2
     /// <summary>
     /// A PODO representing a relying party for a <see cref="FidoCredential"/>
     /// </summary>
+    
+    [Serializable]
     public sealed class FidoCredentialRp
     {
         /// <summary>
@@ -24,6 +26,7 @@ namespace Nexgen.Fido2
     /// <summary>
     /// A PODO representing a user attached to a <see cref="FidoCredential"/>
     /// </summary>
+    [Serializable]
     public sealed class FidoCredentialUser
     {
         /// <summary>
