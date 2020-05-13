@@ -53,7 +53,9 @@ namespace Nexgen.Fido2.Test
             //Fido2Settings.Flags = FidoFlags.Debug;
 
             var lastDevicePath = "";
+            var hasUserPresence = false;
             var hasPin = false;
+            var hasBiometric = false;
 
             //1. Get all devices
             using (var devlist = new FidoDeviceInfoList(64))
@@ -69,6 +71,8 @@ namespace Nexgen.Fido2.Test
             if (string.IsNullOrEmpty(lastDevicePath))
             {
                 Console.WriteLine("No devices found. Check process is administrator, and that key is inserted correctly.");
+                Console.ReadKey();
+                return;
             } 
             else
             {
@@ -86,8 +90,39 @@ namespace Nexgen.Fido2.Test
                             Console.WriteLine($"Option {option.Key}: {option.Value}");
                         }
 
-                        hasPin = ci.Options["clientPin"];
-                        Console.WriteLine($"Security Key has pin set: {hasPin}");
+                        //Check the clientPin paramater (true/false if set, not foudn if not capable)
+                        try
+                        {
+                            hasPin = ci.Options["clientPin"];
+                            Console.WriteLine($"Security Key has pin set: {hasPin}");
+                        }
+                        catch
+                        {
+                            Console.WriteLine($"Error detecting pin.");
+                        }
+
+                        //Check the user presence paramater (true/false if set, not found if not capable)
+                        try
+                        {
+                            hasUserPresence = ci.Options["up"];
+                            Console.WriteLine($"User presence set: {hasUserPresence}");
+                        }
+                        catch
+                        {
+                            Console.WriteLine($"Error detecting user presence parameter.");
+                        }
+
+
+                        //Check the user verification paramater (true/false if set, not found if not capable)
+                        try
+                        {
+                            hasBiometric = ci.Options["uv"];
+                            Console.WriteLine($"Biometric set: {hasBiometric}");
+                        }
+                        catch
+                        {
+                            Console.WriteLine($"Error detecting biometric (user verification) parameter.");
+                        }
 
                         if (hasPin)
                         {
@@ -137,13 +172,15 @@ namespace Nexgen.Fido2.Test
             Console.WriteLine("Press any key to make a credential");
             Console.ReadLine();
 
+            Console.WriteLine("Touch the device if requested ...");
+
             //3. Make a credential on the device.
             //Pin may be null if not required
 
             //https://groups.google.com/a/fidoalliance.org/forum/#!topic/fido-dev/L2K5fBm8Sh0
             var useHmacExtension = true;
 
-            var credential = MakeDeviceCredential(lastDevicePath, useHmacExtension, FidoCose.ES256, null, (hasPin) ? "1234" : null);
+            var credential = MakeDeviceCredential(lastDevicePath, useHmacExtension, FidoCose.ES256, null, (hasPin) ? "1234" : null, hasBiometric);
 
             Console.WriteLine($"Created credential id: {credential.CredentialId}");
 
@@ -151,19 +188,22 @@ namespace Nexgen.Fido2.Test
             Console.WriteLine("Press any key to assert this credential");
             Console.ReadLine();
 
-            var assertionResult = DoAssertion(lastDevicePath, useHmacExtension, "relyingparty", FidoCose.ES256, (hasPin) ? "1234" : null, credential.CredentialId, credential.PublicKey);
+            Console.WriteLine("Touch the device if requested (to assert)...");
+
+            var assertionResult = DoAssertion(lastDevicePath, useHmacExtension, "relyingparty", FidoCose.ES256, (hasPin) ? "1234" : null, credential.CredentialId, credential.PublicKey, hasUserPresence, hasBiometric);
 
             //5. Try a sample assertion
             Console.WriteLine("Press to do another assertion");
             Console.ReadLine();
 
-            var assertionResult2 = DoAssertion(lastDevicePath, useHmacExtension, "relyingparty", FidoCose.ES256, (hasPin) ? "1234" : null, credential.CredentialId, credential.PublicKey);
+            Console.WriteLine("Touch the device if requested (to assert again) ...");
+
+            var assertionResult2 = DoAssertion(lastDevicePath, useHmacExtension, "relyingparty", FidoCose.ES256, (hasPin) ? "1234" : null, credential.CredentialId, credential.PublicKey, hasUserPresence, hasBiometric);
 
             if (useHmacExtension)
             {
                 Console.WriteLine($"Hmac Secrets Match: {assertionResult.HmacSecret.SequenceEqual(assertionResult2.HmacSecret)}");
             }
-
 
             Console.WriteLine("Press any key to close.");
             Console.ReadLine();
@@ -172,7 +212,7 @@ namespace Nexgen.Fido2.Test
         //View the c# versions of the c examples from Yubico here:
         //https://github.com/borrrden/Fido2Net/blob/master/Examples/assert/Assert/Program.cs
         //This will help explain how to eg retrieve hmac secrets
-        private static AssertionResult DoAssertion(string devicePath, bool useHmacExtension, string rp, FidoCose algorithmType, string pin, string credentialId, string publicKey)
+        private static AssertionResult DoAssertion(string devicePath, bool useHmacExtension, string rp, FidoCose algorithmType, string pin, string credentialId, string publicKey, bool requireUp, bool requireUv)
         {
             var ext = useHmacExtension ? FidoExtensions.HmacSecret : FidoExtensions.None;
 
@@ -193,7 +233,7 @@ namespace Nexgen.Fido2.Test
 
                     if (useHmacExtension) assert.SetHmacSalt(Salt, 0);
 
-                    //assert.SetOptions(UserPresenceRequired, UserVerificationRequired);
+                    assert.SetOptions(requireUp, requireUv);
                     dev.GetAssert(assert, pin);
 
                     //Find the generated secret (somehow)
@@ -217,8 +257,9 @@ namespace Nexgen.Fido2.Test
                     verify.Count = 1;
                     verify.SetAuthData(authData, 0);
                     verify.SetExtensions(ext);
-                    //assert.SetOptions(UserPresenceRequired, UserVerificationRequired);
+                    verify.SetOptions(requireUp, requireUv);
                     verify.SetSignature(signature, 0);
+
                     verify.Verify(0, algorithmType, Convert.FromBase64String(publicKey));
                 }
 
@@ -233,7 +274,7 @@ namespace Nexgen.Fido2.Test
 
         //Note: Registering a security key like this would usually happen in the browser via javascript extension
         //It could be done on behalf of the user via the MMC snapin
-        private static MakeCredentialResult MakeDeviceCredential(string devicePath, bool useHmacExtension, FidoCose algorithmType, List<string> excludedCredentials, string pin)
+        private static MakeCredentialResult MakeDeviceCredential(string devicePath, bool useHmacExtension, FidoCose algorithmType, List<string> excludedCredentials, string pin, bool requireUv)
         {
             //Use these values on the commandline when manually creating a credentail using fido2-token in the Yubico libfido2 toolkit
             //var base64cdh = Convert.ToBase64String(Cdh);
@@ -282,10 +323,7 @@ namespace Nexgen.Fido2.Test
                     });
 
                     cred.SetExtensions(ext);
-
-                    //OMFG. This causes an unsupported exception no matter what values you use.
-                    //cred.SetOptions(residentKey, userVerificationRequired);
-                    //cred.SetOptions(true, true);
+                    cred.SetOptions(false, requireUv);
 
                     //Make the credential, including the device pin if required
                     dev.MakeCredential(cred, pin);
@@ -311,12 +349,12 @@ namespace Nexgen.Fido2.Test
 
                     verify.AuthData = cred.AuthData;
                     verify.SetExtensions(ext);
-                    //verify.SetOptions(residentKey, userVerificationRequired);
+                    verify.SetOptions(false, requireUv);
                     verify.SetX509(cred.X5C);
                     verify.Signature = cred.Signature;
                     verify.Format = cred.Format;
 
-                    //Throws a CtapException if it fails. We dont really have to give a fuck about this though.
+                    //Throws a CtapException if it fails.
                     verify.Verify();
 
                     //Now write out the information, because we need the public key created by the device for future assertions
