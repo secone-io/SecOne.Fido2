@@ -233,7 +233,8 @@ namespace Nexgen.Fido2.Test
 
                     if (useHmacExtension) assert.SetHmacSalt(Salt, 0);
 
-                    assert.SetOptions(requireUp, requireUv);
+                    if (requireUv) assert.SetOptions(requireUp, requireUv);
+
                     dev.GetAssert(assert, pin);
 
                     //Find the generated secret (somehow)
@@ -257,7 +258,9 @@ namespace Nexgen.Fido2.Test
                     verify.Count = 1;
                     verify.SetAuthData(authData, 0);
                     verify.SetExtensions(ext);
-                    verify.SetOptions(requireUp, requireUv);
+
+                    if (requireUv) verify.SetOptions(requireUp, requireUv);
+                    
                     verify.SetSignature(signature, 0);
 
                     verify.Verify(0, algorithmType, Convert.FromBase64String(publicKey));
@@ -323,7 +326,9 @@ namespace Nexgen.Fido2.Test
                     });
 
                     cred.SetExtensions(ext);
-                    cred.SetOptions(false, requireUv);
+                    
+                    //Only set these options if we have the capability
+                    if (requireUv) cred.SetOptions(false, true);
 
                     //Make the credential, including the device pin if required
                     dev.MakeCredential(cred, pin);
@@ -349,7 +354,9 @@ namespace Nexgen.Fido2.Test
 
                     verify.AuthData = cred.AuthData;
                     verify.SetExtensions(ext);
-                    verify.SetOptions(false, requireUv);
+
+                    if (requireUv) verify.SetOptions(false, true);
+                    
                     verify.SetX509(cred.X5C);
                     verify.Signature = cred.Signature;
                     verify.Format = cred.Format;
