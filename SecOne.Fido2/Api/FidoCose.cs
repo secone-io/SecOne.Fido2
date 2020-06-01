@@ -1,4 +1,4 @@
-﻿namespace Nexgen.Fido2
+﻿namespace SecOne.Fido2
 {
     /// <summary>
     /// CBOR Object Signing and Encryption algorithms (RFC 8152)

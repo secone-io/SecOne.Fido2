@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Nexgen.Fido2
+namespace SecOne.Fido2
 {
     /// <summary>
     /// Flags set on either a <see cref="FidoCredential"/> or a <see cref="FidoAssertionStatement"/>

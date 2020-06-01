@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace Nexgen.Fido2.Interop
+namespace SecOne.Fido2.Interop
 {
     /// <summary>
     /// The signature for a callback for opening a FIDO2 device

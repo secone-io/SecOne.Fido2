@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Nexgen.Fido2
+namespace SecOne.Fido2
 {
     public enum FidoStatus
     {

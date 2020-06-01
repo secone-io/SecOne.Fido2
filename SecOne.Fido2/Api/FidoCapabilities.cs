@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Nexgen.Fido2
+namespace SecOne.Fido2
 {
     /// <summary>
     /// Flags representing the capabilities of a FIDO2 authenticator

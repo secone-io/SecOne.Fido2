@@ -1,4 +1,4 @@
-﻿namespace Nexgen.Fido2
+﻿namespace SecOne.Fido2
 {
     /// <summary>
     /// <para>Status codes as defined in Client to Authenticator Protocol (CTAP) standard</para>

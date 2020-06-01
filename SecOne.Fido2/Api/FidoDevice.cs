@@ -1,9 +1,9 @@
-﻿using Nexgen.Fido2.Interop;
-using Nexgen.Fido2.Util;
+﻿using SecOne.Fido2.Interop;
+using SecOne.Fido2.Util;
 using System;
 
 
-namespace Nexgen.Fido2
+namespace SecOne.Fido2
 {
     /// <summary>
     /// A class representing a FIDO2 capable device

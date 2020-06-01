@@ -1,7 +1,7 @@
-﻿using Nexgen.Fido2.Interop;
+﻿using SecOne.Fido2.Interop;
 
 
-namespace Nexgen.Fido2.Util
+namespace SecOne.Fido2.Util
 {
     internal static class Init
     {

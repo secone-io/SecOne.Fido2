@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 //https://fidoalliance.org/specs/fido-v2.0-rd-20180702/fido-client-to-authenticator-protocol-v2.0-rd-20180702.html#authenticator-api
-namespace Nexgen.Fido2.Test
+namespace SecOne.Fido2.Test
 {
     struct MakeCredentialResult
     {
@@ -322,7 +322,7 @@ namespace Nexgen.Fido2.Test
                         Id = UserId,
                         //DisplayName = "john smith",
                         Name = "johnsmith2"
-                        //Icon = "http://nexgen.com/logo.png"
+                        //Icon = "http://secone.io/logo.png"
                     });
 
                     cred.SetExtensions(ext);

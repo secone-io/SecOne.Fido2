@@ -1,11 +1,11 @@
-﻿using Nexgen.Fido2.Interop;
-using Nexgen.Fido2.Util;
+﻿using SecOne.Fido2.Interop;
+using SecOne.Fido2.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Nexgen.Fido2
+namespace SecOne.Fido2
 {
     /// <summary>
     /// A class that represents the extended details of a FIDO2 authenticator

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace Nexgen.Fido2.Interop
+namespace SecOne.Fido2.Interop
 {
     /// <summary>
     /// A custom marshaller to retrieve char* and const char* properties from

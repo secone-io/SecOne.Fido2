@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29728.190
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nexgen.Fido2", "Nexgen.Fido2\Nexgen.Fido2.csproj", "{96EAC659-2B39-4176-B2AB-79D6C1F17948}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecOne.Fido2", "SecOne.Fido2\SecOne.Fido2.csproj", "{96EAC659-2B39-4176-B2AB-79D6C1F17948}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nexgen.Fido2.Test", "Nexgen.Fido2.Test\Nexgen.Fido2.Test.csproj", "{4CD58308-ADDA-4301-A8E1-43C84BC6889D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecOne.Fido2.Test", "SecOne.Fido2.Test\SecOne.Fido2.Test.csproj", "{4CD58308-ADDA-4301-A8E1-43C84BC6889D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

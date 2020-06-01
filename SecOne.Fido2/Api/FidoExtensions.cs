@@ -1,4 +1,4 @@
-﻿namespace Nexgen.Fido2
+﻿namespace SecOne.Fido2
 {
     /// <summary>
     /// Extensions for a FIDO2 device

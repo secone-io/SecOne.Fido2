@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Nexgen.Fido2
+namespace SecOne.Fido2
 {
     /// <summary>
     /// An exception representing a return status that is non-successful according to the CTAP specification

@@ -7,8 +7,8 @@
     <ProjectGuid>{96EAC659-2B39-4176-B2AB-79D6C1F17948}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Nexgen.Fido2</RootNamespace>
-    <AssemblyName>Nexgen.Fido2</AssemblyName>
+    <RootNamespace>SecOne.Fido2</RootNamespace>
+    <AssemblyName>SecOne.Fido2</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>

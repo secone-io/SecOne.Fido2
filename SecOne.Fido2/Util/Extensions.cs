@@ -1,4 +1,4 @@
-﻿namespace Nexgen.Fido2.Util
+﻿namespace SecOne.Fido2.Util
 {
     internal static class Extensions
     {

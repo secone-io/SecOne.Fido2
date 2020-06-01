@@ -1,10 +1,10 @@
-﻿using Nexgen.Fido2.Interop;
-using Nexgen.Fido2.Util;
+﻿using SecOne.Fido2.Interop;
+using SecOne.Fido2.Util;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Nexgen.Fido2
+namespace SecOne.Fido2
 {
     /// <summary>
     /// A class representing external info about a particular FIDO capable
