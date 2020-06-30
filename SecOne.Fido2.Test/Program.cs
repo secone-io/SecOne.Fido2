@@ -18,6 +18,7 @@ namespace SecOne.Fido2.Test
     {
         public byte[] HmacSecret;
         public bool Valid;
+        public string PublicKey;
     }
 
     class Program
@@ -46,6 +47,14 @@ namespace SecOne.Fido2.Test
 
         };
 
+        private static readonly byte[] Salt2 = {
+            0x79, 0x1c, 0x78, 0x60, 0xad, 0x88, 0xd2, 0x63,
+            0x32, 0x62, 0x2a, 0xf1, 0x74, 0x5d, 0xed, 0xb2,
+            0xe7, 0xa4, 0x2b, 0x44, 0x89, 0x29, 0x39, 0xc5,
+            0x56, 0x64, 0x01, 0x27, 0x0d, 0xbb, 0xc4, 0x49,
+
+        };
+
 
         static void Main(string[] args)
         {
@@ -64,6 +73,8 @@ namespace SecOne.Fido2.Test
                 {
                     Console.WriteLine(di);
                     lastDevicePath = di.Path;
+
+                    Console.WriteLine($"GOT PATH:{di.Path}");
                 }
             }
 
@@ -184,13 +195,23 @@ namespace SecOne.Fido2.Test
 
             Console.WriteLine($"Created credential id: {credential.CredentialId}");
 
+            Console.WriteLine("Press any key to make another credential");
+            Console.ReadLine();
+
+            Console.WriteLine("Touch the device if requested ...");
+
+            //Test making another credential to test multiple credential scenarios
+            var credential2 = MakeDeviceCredential(lastDevicePath, useHmacExtension, FidoCose.ES256, null, (hasPin) ? "1234" : null, hasBiometric);
+
+            Console.WriteLine($"Created credential id: {credential2.CredentialId}");
+
             //4. Try a sample assertion
             Console.WriteLine("Press any key to assert this credential");
             Console.ReadLine();
 
             Console.WriteLine("Touch the device if requested (to assert)...");
 
-            var assertionResult = DoAssertion(lastDevicePath, useHmacExtension, "relyingparty", FidoCose.ES256, (hasPin) ? "1234" : null, credential.CredentialId, credential.PublicKey, hasUserPresence, hasBiometric);
+            var assertionResult = DoAssertion(lastDevicePath, useHmacExtension, "relyingparty", FidoCose.ES256, (hasPin) ? "1234" : null, credential2, credential, Salt2, Salt, hasUserPresence, hasBiometric);
 
             //5. Try a sample assertion
             Console.WriteLine("Press to do another assertion");
@@ -198,7 +219,7 @@ namespace SecOne.Fido2.Test
 
             Console.WriteLine("Touch the device if requested (to assert again) ...");
 
-            var assertionResult2 = DoAssertion(lastDevicePath, useHmacExtension, "relyingparty", FidoCose.ES256, (hasPin) ? "1234" : null, credential.CredentialId, credential.PublicKey, hasUserPresence, hasBiometric);
+            var assertionResult2 = DoAssertion(lastDevicePath, useHmacExtension, "relyingparty", FidoCose.ES256, (hasPin) ? "1234" : null, credential2, credential, Salt2, Salt, hasUserPresence, hasBiometric);
 
             if (useHmacExtension)
             {
@@ -212,7 +233,7 @@ namespace SecOne.Fido2.Test
         //View the c# versions of the c examples from Yubico here:
         //https://github.com/borrrden/Fido2Net/blob/master/Examples/assert/Assert/Program.cs
         //This will help explain how to eg retrieve hmac secrets
-        private static AssertionResult DoAssertion(string devicePath, bool useHmacExtension, string rp, FidoCose algorithmType, string pin, string credentialId, string publicKey, bool requireUp, bool requireUv)
+        private static AssertionResult DoAssertion(string devicePath, bool useHmacExtension, string rp, FidoCose algorithmType, string pin, MakeCredentialResult credential, MakeCredentialResult credential2, byte[] salt, byte[] salt2, bool requireUp, bool requireUv)
         {
             var ext = useHmacExtension ? FidoExtensions.HmacSecret : FidoExtensions.None;
 
@@ -222,25 +243,30 @@ namespace SecOne.Fido2.Test
                 {
                     dev.Open(devicePath);
 
-                    if (credentialId != null)
+                    if (credential.CredentialId != null)
                     {
-                        assert.AllowCredential(Convert.FromBase64String(credentialId));
+                        assert.AllowCredential(Convert.FromBase64String(credential.CredentialId));
+                    }
+
+                    if (credential2.CredentialId != null)
+                    {
+                        assert.AllowCredential(Convert.FromBase64String(credential2.CredentialId));
                     }
 
                     assert.ClientDataHash = Cdh;
                     assert.Rp = rp;
                     assert.SetExtensions(ext);
 
-                    if (useHmacExtension) assert.SetHmacSalt(Salt, 0);
+                    if (useHmacExtension)
+                    {
+                        assert.SetHmacSalt(salt, 0);
+                        if (credential2.CredentialId != null) assert.SetHmacSalt(salt2, 1);
+                    }
 
                     if (requireUv) assert.SetOptions(requireUp, requireUv);
 
                     dev.GetAssert(assert, pin);
-
-                    //Find the generated secret (somehow)
-                 
-
-                    dev.Close();
+                    dev.Close();                    
                 }
 
                 if (assert.Count != 1)
@@ -250,6 +276,7 @@ namespace SecOne.Fido2.Test
 
                 var authData = assert[0].AuthData;
                 var signature = assert[0].Signature;
+                var verifiedKey = "";
 
                 using (var verify = new FidoAssertion())
                 {
@@ -263,13 +290,32 @@ namespace SecOne.Fido2.Test
                     
                     verify.SetSignature(signature, 0);
 
-                    verify.Verify(0, algorithmType, Convert.FromBase64String(publicKey));
+                    
+                    //Try verify both ways
+                    try
+                    {
+                        verify.Verify(0, algorithmType, Convert.FromBase64String(credential.PublicKey));
+                        verifiedKey = credential.PublicKey;
+                    }
+                    catch
+                    {
+                        try
+                        {
+                            verify.Verify(0, algorithmType, Convert.FromBase64String(credential2.PublicKey));
+                            verifiedKey = credential2.PublicKey;
+                        }
+                        catch
+                        {
+
+                        }
+                    }
                 }
 
                 AssertionResult result;
 
                 result.HmacSecret = (useHmacExtension) ? assert[0].HmacSecret.ToArray() : new Byte[] { };
-                result.Valid = true;
+                result.Valid = !String.IsNullOrEmpty(verifiedKey);
+                result.PublicKey = verifiedKey;
 
                 return result;
             }
