@@ -37,7 +37,7 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>secone.snk.pfx</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>secone.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -100,7 +100,7 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
-    <None Include="secone.snk.pfx" />
+    <None Include="secone.snk" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="readme.txt" />
