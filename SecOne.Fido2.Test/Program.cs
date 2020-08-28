@@ -163,22 +163,22 @@ namespace SecOne.Fido2.Test
             //}
 
             //Optional. Set the pin to 1234
-            //if (!hasPin)
-            //{ 
-            //   using (var dev = new FidoDevice())
-            //    {
-            //        Console.WriteLine("Press any key to set the pin.");
-            //        Console.ReadLine();
+            if (!hasPin)
+            {
+                using (var dev = new FidoDevice())
+                {
+                    Console.WriteLine("Press any key to set the pin.");
+                    Console.ReadLine();
 
-            //        dev.Open(lastDevicePath);
-            //        {
-            //            dev.SetPin(null, "1234");
-            //            hasPin = true;
+                    dev.Open(lastDevicePath);
+                    {
+                        dev.SetPin(null, "1234");
+                        hasPin = true;
 
-            //            dev.Close();
-            //        }
-            //    }
-            //}
+                        dev.Close();
+                    }
+                }
+            }
 
             Console.WriteLine("Press any key to make a credential");
             Console.ReadLine();
@@ -211,7 +211,7 @@ namespace SecOne.Fido2.Test
 
             Console.WriteLine("Touch the device if requested (to assert)...");
 
-            var assertionResult = DoAssertion(lastDevicePath, useHmacExtension, "relyingparty", FidoCose.ES256, (hasPin) ? "1234" : null, credential2, credential, Salt2, Salt, hasUserPresence, hasBiometric);
+            var assertionResult = DoAssertion(lastDevicePath, useHmacExtension, "relyingparty", FidoCose.ES256, (hasPin) ? "1234" : null, credential, credential2, Salt, Salt2, hasUserPresence, hasBiometric);
 
             //5. Try a sample assertion
             Console.WriteLine("Press to do another assertion");
@@ -276,6 +276,7 @@ namespace SecOne.Fido2.Test
 
                 var authData = assert[0].AuthData;
                 var signature = assert[0].Signature;
+                var credentialId = Convert.ToBase64String(assert[0].Id.ToArray());
                 var verifiedKey = "";
 
                 using (var verify = new FidoAssertion())
@@ -290,25 +291,23 @@ namespace SecOne.Fido2.Test
                     
                     verify.SetSignature(signature, 0);
 
-                    
-                    //Try verify both ways
-                    try
-                    {
-                        verify.Verify(0, algorithmType, Convert.FromBase64String(credential.PublicKey));
-                        verifiedKey = credential.PublicKey;
-                    }
-                    catch
-                    {
-                        try
-                        {
-                            verify.Verify(0, algorithmType, Convert.FromBase64String(credential2.PublicKey));
-                            verifiedKey = credential2.PublicKey;
-                        }
-                        catch
-                        {
+                    //Get the correct public id
+                    string publicKey = string.Empty;
 
-                        }
+                    if (credential.CredentialId == credentialId)
+                    {
+                        publicKey = credential.PublicKey;
                     }
+                    else if (credential2.CredentialId == credentialId)
+                    {
+                        publicKey = credential2.PublicKey;
+                    }
+
+                    if (string.IsNullOrEmpty(publicKey)) throw new ApplicationException("Credential not found in assertion.");
+
+                    //Now verify with the public key
+                    verify.Verify(0, algorithmType, Convert.FromBase64String(publicKey));
+                    verifiedKey = credential.PublicKey;
                 }
 
                 AssertionResult result;
