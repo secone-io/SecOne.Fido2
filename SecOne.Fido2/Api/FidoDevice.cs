@@ -164,6 +164,7 @@ namespace SecOne.Fido2
         /// <exception cref="CtapException">Thrown if an error occurs while resetting</exception>
         public void Reset() => Native.fido_dev_reset(_native).Check();
 
+        //TODO: https://github.com/secone-io/SecOne.Fido2/issues/1
         /// <summary>
         /// Sets the pin on a device
         /// </summary>
