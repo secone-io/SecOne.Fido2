@@ -748,6 +748,27 @@ namespace SecOne.Fido2.Interop
 		public static extern int fido_dev_get_assert(fido_dev_t *dev, fido_assert_t *assert, string pin);
 
         /// <summary>
+        /// <para>Asks the FIDO device represented by dev for an assertion according to the following parameters defined in assert:
+        /// relying party ID;</para>
+        /// client data hash;
+        /// list of allowed credential IDs;
+        /// user presence and user verification attributes.
+        /// <para>See fido_assert_set(3) for information on how these values are set.</para>
+        /// <para>If a PIN is not needed to authenticate the request against dev, then pin may be NULL.  Otherwise pin must point to a NUL-terminated UTF-8 string.</para>
+        /// <para>After a successful call, the <see cref="fido_assert_count(fido_assert_t*)"/>, <see cref="fido_assert_user_display_name(fido_assert_t*, IntPtr)"/>, 
+        /// <see cref="fido_assert_user_icon(fido_assert_t*, IntPtr)"/>, <see cref="fido_assert_user_name(fido_assert_t*, IntPtr)"/>, 
+        /// <see cref="fido_assert_authdata_ptr(fido_assert_t*, IntPtr)"/>, <see cref="fido_assert_user_id_ptr(fido_assert_t*, IntPtr)"/>, and <see cref="fido_assert_sig_ptr(fido_assert_t*, IntPtr)"/> 
+        /// functions may be invoked on assert to retrieve the various attributes of the generated assertion.</para>
+        /// <para>Please note that fido_dev_get_assert() is synchronous and will block if necessary.</para>
+        /// </summary>
+        /// <param name="dev">The device to use for generation</param>
+        /// <param name="assert">The assert to use for generation</param>
+        /// <param name="pin">The pin of the device</param>
+        /// <returns><see cref="CtapStatus.Ok"/> on success, anything else on failure</returns>
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int fido_dev_get_assert(fido_dev_t* dev, fido_assert_t* assert, IntPtr pin);
+
+        /// <summary>
         /// Gets the extended information of the device
         /// </summary>
         /// <param name="dev">The device to get the info from</param>
@@ -799,6 +820,27 @@ namespace SecOne.Fido2.Interop
 		public static extern int fido_dev_make_cred(fido_dev_t *dev, fido_cred_t *cred, string pin);
 
         /// <summary>
+        /// <para>Asks the FIDO device represented by dev to generate a new credential according to the following parameters defined in cred:</para>
+        /// type;
+        /// client data hash;
+        /// relying party;
+        /// user attributes;
+        /// list of excluded credential IDs;
+        /// resident key and user verification attributes.
+        /// <para>If a PIN is not needed to authenticate the request against dev, then pin may be NULL.Otherwise pin must point to a NUL-terminated UTF-8 string.</para>
+        /// <para>After a successful call, the <see cref="fido_cred_authdata_ptr(fido_cred_t*)"/>, <see cref="fido_cred_pubkey_ptr(fido_cred_t*)"/>,
+        /// <see cref="fido_cred_x5c_ptr(fido_cred_t*)"/>, and <see cref="fido_cred_sig_ptr(fido_cred_t*)"/> functions may be 
+        /// invoked on cred to retrieve the various parts of the generated credential.</para>
+        /// <para>Please note that this call is synchronous and will block if necessary.</para>
+        /// </summary>
+        /// <param name="dev">The device to act on</param>
+        /// <param name="cred">The credential to ac on</param>
+        /// <param name="pin">The pin of the device</param>
+        /// <returns><see cref="CtapStatus.Ok"/> on success, anything else on failure</returns>
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int fido_dev_make_cred(fido_dev_t* dev, fido_cred_t* cred, IntPtr pin);
+
+        /// <summary>
         /// Opens the device pointed to by path, where dev is a freshly allocated or otherwise closed fido_dev_t.
         /// </summary>
         /// <param name="dev">The device handle to store the result</param>
@@ -826,7 +868,7 @@ namespace SecOne.Fido2.Interop
 		public static extern int fido_dev_set_io_functions(fido_dev_t *dev, fido_dev_io_t *io);
 
         /// <summary>
-        /// Sets the PIN of device dev to pin, where pin is a NUL-terminated UTF-8 string. 
+        /// Sets the PIN of device dev to pin, where pin is a NULL-terminated UTF-8 string. 
         /// If oldpin is not <c>null</c>, the device's PIN is changed from oldpin to pin, 
         /// where pin and oldpin are NUL-terminated UTF-8 strings.
         /// </summary>
@@ -836,6 +878,19 @@ namespace SecOne.Fido2.Interop
         /// <returns><see cref="CtapStatus.Ok"/> on success, anything else on failure</returns>
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int fido_dev_set_pin(fido_dev_t *dev, string pin, string oldpin);
+
+        /// <summary>
+        /// Sets the PIN of device dev to pin, where pin is a NULL-terminated UTF-8 string. 
+        /// If oldpin is not <c>null</c>, the device's PIN is changed from oldpin to pin, 
+        /// where pin and oldpin are NUL-terminated UTF-8 strings.
+        /// </summary>
+        /// <param name="dev">The device to act on</param>
+        /// <param name="pin">The pin to set</param>
+        /// <param name="oldpin">The existing pin</param>
+        /// <returns><see cref="CtapStatus.Ok"/> on success, anything else on failure</returns>
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int fido_dev_set_pin(fido_dev_t* dev, IntPtr pin, IntPtr oldpin);
+
 
         /// <summary>
         /// Returns the length of the authenticator data of statement idx in assert

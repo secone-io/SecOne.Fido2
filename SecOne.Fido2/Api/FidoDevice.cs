@@ -1,7 +1,8 @@
 ﻿using SecOne.Fido2.Interop;
 using SecOne.Fido2.Util;
 using System;
-
+using System.Runtime.InteropServices;
+using System.Security;
 
 namespace SecOne.Fido2
 {
@@ -128,6 +129,20 @@ namespace SecOne.Fido2
         public void GetAssert(FidoAssertion assert, string pin) =>
             Native.fido_dev_get_assert(_native, (fido_assert_t*) assert, pin).Check();
 
+        public void GetAssert(FidoAssertion assert, SecureString pin)
+        {
+            IntPtr pinPtr = IntPtr.Zero;
+            try
+            {
+                if (pin.Length > 0) pinPtr = Marshal.SecureStringToCoTaskMemAnsi(pin);
+                Native.fido_dev_get_assert(_native, (fido_assert_t*)assert, pinPtr).Check();
+            }
+            finally
+            {
+                if (pinPtr != IntPtr.Zero) Marshal.ZeroFreeCoTaskMemAnsi(pinPtr);
+            }
+        }
+
         /// <summary>
         /// Gets the extended information about this device
         /// </summary>
@@ -149,6 +164,21 @@ namespace SecOne.Fido2
         /// <exception cref="CtapException">Thrown if an error occurs while generating the credential</exception>
         public void MakeCredential(FidoCredential credential, string pin) =>
             Native.fido_dev_make_cred(_native, (fido_cred_t*) credential, pin).Check();
+
+        public void MakeCredential(FidoCredential credential, SecureString pin)
+        {
+            IntPtr pinPtr = IntPtr.Zero;
+            try
+            {
+                if (pin.Length > 0) pinPtr = Marshal.SecureStringToCoTaskMemAnsi(pin);
+
+                Native.fido_dev_make_cred(_native, (fido_cred_t*)credential, pinPtr).Check();
+            }
+            finally
+            {
+                if (pinPtr != IntPtr.Zero) Marshal.ZeroFreeCoTaskMemAnsi(pinPtr);
+            }
+        }
 
         /// <summary>
         /// Opens the device at the given path (to find the path of a device, use
@@ -172,6 +202,26 @@ namespace SecOne.Fido2
         /// <param name="pin">The new pin</param>
         /// <exception cref="CtapException">Thrown if an error occurs while setting the pin</exception>
         public void SetPin(string oldPin, string pin) => Native.fido_dev_set_pin(_native, pin, oldPin).Check();
+
+        public void SetPin(SecureString oldPin, SecureString pin)
+        {
+            IntPtr oldPinPtr = IntPtr.Zero;
+            IntPtr pinPtr = IntPtr.Zero;
+
+            //Since we only have 0-9, Ansi should be ok
+            try
+            {
+                if (oldPin.Length > 0) oldPinPtr = Marshal.SecureStringToCoTaskMemAnsi(oldPin);
+                pinPtr = Marshal.SecureStringToCoTaskMemAnsi(pin);
+
+                Native.fido_dev_set_pin(_native, pinPtr, oldPinPtr).Check();
+            }
+            finally
+            {
+                if (oldPinPtr != IntPtr.Zero) Marshal.ZeroFreeCoTaskMemAnsi(oldPinPtr);
+                if (pinPtr != IntPtr.Zero) Marshal.ZeroFreeCoTaskMemAnsi(pinPtr);
+            }
+        }
 
         #endregion
 
