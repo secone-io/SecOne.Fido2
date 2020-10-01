@@ -26,7 +26,3 @@ This class abstracts a FIDO2 capable device and lets you interact with it.  It i
 This class will enumerate attached FIDO2 devices for you
 
 
-## Samples
-
-See the Examples directory
-
