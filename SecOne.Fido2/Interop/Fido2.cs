@@ -727,6 +727,13 @@ namespace SecOne.Fido2.Interop
 		public static extern int fido_dev_close(fido_dev_t *dev);
 
         /// <summary>
+        /// Cancels any pending requests on dev.
+        /// </summary>
+        /// <param name="dev">The device to cancel</param>
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int fido_dev_cancel(fido_dev_t* dev);
+
+        /// <summary>
         /// <para>Asks the FIDO device represented by dev for an assertion according to the following parameters defined in assert:
         /// relying party ID;</para>
         /// client data hash;

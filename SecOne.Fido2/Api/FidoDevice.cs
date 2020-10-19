@@ -111,6 +111,11 @@ namespace SecOne.Fido2
         public void Close() => Native.fido_dev_close(_native).Check();
 
         /// <summary>
+        /// Cancels any pending requests on the device
+        /// </summary>
+        public void Cancel() => Native.fido_dev_cancel(_native);
+
+        /// <summary>
         /// Forces the use of the FIDO2 standard when generating credentials and assertions
         /// </summary>
         public void ForceFido2() => Native.fido_dev_force_fido2(_native);
